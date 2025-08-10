@@ -10,7 +10,7 @@ namespace VariableVixen.TinyCmds.Chat;
 public static class ChatUtil {
 
 	internal static List<Payload> GenerateMessagePayloads(params object[] payloads) {
-		return new List<Payload>(payloads
+		return payloads
 			.Where(e => e is not null)
 			.SelectMany(e => {
 				return e switch {
@@ -28,7 +28,7 @@ public static class ChatUtil {
 					],
 				};
 			})
-		);
+			.ToList();
 	}
 
 	#region Chatlog functions

@@ -56,7 +56,7 @@ public class EvaluatePlaceholders: PluginCommand {
 	private static unsafe string replace(string p) {
 		string[] parts = p.ToLower().Split('.', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 		string flag = parts[0];
-		HashSet<string> mods = new(parts.Skip(1));
+		HashSet<string> mods = parts.Skip(1).ToHashSet();
 		string value = flag.Trim().ToLower() switch {
 			// Custom placeholders - time
 			"year"

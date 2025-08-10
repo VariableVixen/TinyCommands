@@ -1,9 +1,6 @@
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface;
 using Dalamud.Interface.Windowing;
-
-using ImGuiNET;
-
-using VariableVixen.TinyCmds;
 
 namespace VariableVixen.TinyCmds.Ui;
 
