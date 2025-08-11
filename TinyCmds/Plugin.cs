@@ -57,7 +57,7 @@ public class Plugin: IDalamudPlugin {
 		//Common = new(Interface);
 		//ServerChat = Common.Functions.Chat;
 		// XivCommon isn't updated yet, so we're ripping the chat functionality locally
-		ServerChat = new(Scanner);
+		ServerChat = new();
 		CommandManager = new(this) {
 			ErrorHandler = ChatUtil.ShowPrefixedError
 		};

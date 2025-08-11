@@ -75,14 +75,13 @@ public static class ChatUtil {
 	#endregion
 
 	public static void SendChatlineToServer(string line, bool displayInChatlog = false, bool dryRun = false) {
-		string content = Plugin.ServerChat.SanitiseText(line);
 		Plugin.Log.Information("{0} [{1}]",
 			dryRun ? "!>" : ">>",
-			content);
+			line);
 
 		if (displayInChatlog || dryRun)
-			ShowPrefixedMessage(ChatColour.DEBUG, content, ChatColour.RESET);
+			ShowPrefixedMessage(ChatColour.DEBUG, line, ChatColour.RESET);
 		if (!dryRun)
-			Plugin.ServerChat.SendMessage(content);
+			Plugin.ServerChat.SendMessage(line);
 	}
 }

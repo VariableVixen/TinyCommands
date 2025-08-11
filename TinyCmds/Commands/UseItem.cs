@@ -1,13 +1,10 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
 using Dalamud.Game.Text.SeStringHandling.Payloads;
-using Dalamud.Plugin.Services;
-using Dalamud.Utility.Signatures;
 
 using FFXIVClientStructs.FFXIV.Client.Game;
-using FFXIVClientStructs.FFXIV.Client.UI;
-using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 
 using Lumina.Excel.Sheets;
 
@@ -16,125 +13,80 @@ using VariableVixen.TinyCmds.Attributes;
 using VariableVixen.TinyCmds.Chat;
 using VariableVixen.TinyCmds.Utils;
 
-using CSFW = FFXIVClientStructs.FFXIV.Client.System.Framework.Framework;
-
 namespace VariableVixen.TinyCmds.Commands;
 
 [Command("/useitem", "/use", "/item")]
 [Summary("Use an item from your inventory by numeric ID or by name (case-insensitive full match)")]
 [HelpText(
-	"This command attempts to use an item from your inventory, including key items. It is best used with the item ID, but can search by name as well.",
-	"Name matching is case-insensitive, but NOT partial - you must pass the FULL name of the item you wish to use."
+	"This command attempts to use an item from your inventory, including key items. It requires the item ID, which you can find using something like SimpleTweaks."
 )]
 public unsafe class UseItem: PluginCommand {
-	private static readonly Dictionary<uint, string> usables;
-	private uint retryItem = 0;
-
-#pragma warning disable IDE0044 // Add readonly modifier
-#pragma warning disable CS0649 // Member is never assigned to
-	[Signature("E8 ?? ?? ?? ?? E9 ?? ?? ?? ?? 48 8D 0D ?? ?? ?? ?? E8 ?? ?? ?? ?? 4C 89 74 24 ??", Fallibility = Fallibility.Fallible)]
-	private static delegate* unmanaged<nint, uint, uint, uint, short, void> useItem;
-
-	[Signature("E8 ?? ?? ?? ?? 44 8B 4B 2C", Fallibility = Fallibility.Fallible)]
-	private static delegate* unmanaged<uint, uint, uint> getActionID;
-#pragma warning restore CS0649 // Member is never assigned to
-#pragma warning restore IDE0044 // Add readonly modifier
-
-	static UseItem() {
-		usables = Plugin.Data.GetExcelSheet<Item>()!
-			.Where(i => i.ItemAction.RowId > 0)
-			.ToDictionary(i => i.RowId, i => i.Name.ToString().ToLower())
-			.Concat(Plugin.Data.GetExcelSheet<EventItem>()!
-				.Where(i => i.Action.RowId > 0)
-				.ToDictionary(i => i.RowId, i => i.Name.ToString().ToLower())
-			)
-			.ToDictionary(kv => kv.Key, kv => kv.Value);
-	}
+	private static Dictionary<uint, string> items = null!, keyItems = null!;
 
 	protected override void Initialise() {
 		Plugin.Interop.InitializeFromAttributes(this);
-		Plugin.Framework.Update += this.attemptReuse;
+		items = Plugin.Data.GetExcelSheet<Item>()!
+			.Where(i => i.ItemAction.RowId > 0)
+			.ToDictionary(i => i.RowId, i => i.Name.ToString().ToLower());
+		keyItems = Plugin.Data.GetExcelSheet<EventItem>()!
+			.Where(i => i.Action.RowId > 0)
+			.ToDictionary(i => i.RowId, i => i.Name.ToString().ToLower());
 	}
 
 	protected override void Execute(string? command, string rawArguments, FlagMap flags, bool verbose, bool dryRun, ref bool showHelp) {
+		InventoryManager* inv = InventoryManager.Instance();
+		if (inv is null)
+			throw new InvalidOperationException("Cannot find InventoryManager instance");
+
 		string target = rawArguments.ToLower().Trim();
 		if (!uint.TryParse(target, out uint itemId)) {
-			if (usables is null || string.IsNullOrWhiteSpace(target))
-				return;
-
-			string name = target.Replace("\uE03C", ""); // remove the HQ symbol if it gets in there somehow
-			bool hq = name != target;
-			try {
-				itemId = usables.First(i => i.Value == name).Key + (uint)(hq ? 1_000_000 : 0);
-			}
-			catch {
-				// no such item found
-				ChatUtil.ShowPrefixedError(
-					"No such item ",
-					new UIForegroundPayload(14),
-					rawArguments.Trim(),
-					new UIForegroundPayload(0),
-					" could be found."
-				);
-				return;
-			}
-		}
-
-		this.use(itemId);
-	}
-
-	private void use(uint id) {
-		if (useItem is null) {
-			Plugin.Log.Error($"{this.GetType().Name}.use(uint) called without useItem delegate");
+			ChatUtil.ShowPrefixedError("This command requires an item ID");
 			return;
 		}
 
-		if (id == 0 || !usables.ContainsKey(id is >= 1_000_000 and < 2_000_000 ? id - 1_000_000 : id)) // yeah, HQ items are different IDs
-			return;
+		ActionType type = ActionType.None;
+		if (items.TryGetValue(itemId, out string? name))
+			type = ActionType.Item;
+		else if (keyItems.TryGetValue(itemId, out name))
+			type = ActionType.KeyItem;
 
-		CSFW* framework = CSFW.Instance();
-		if (framework is null)
-			return;
-
-		UIModule* uiModule = framework->GetUIModule();
-		if (uiModule is null)
-			return;
-
-		AgentModule* agentModule = uiModule->GetAgentModule();
-		if (agentModule is null)
-			return;
-
-		AgentInterface* itemContextMenuAgent = agentModule->GetAgentByInternalId(AgentId.InventoryContext);
-		if (itemContextMenuAgent is null)
-			return;
-
-
-		// For some reason, items occasionally fail to actually be used, and this is how we can detect that
-		// The ""fix"" is a horrible hack in which we basically just keep trying to use it every framework update :v
-		if (getActionID is not null && this.retryItem == 0 && id < 2_000_000) {
-			uint actionID = getActionID((uint)ActionType.Item, id);
-			if (actionID == 0) {
-				this.retryItem = id;
-				return;
-			}
+		if (type is ActionType.None) {
+			ChatUtil.ShowPrefixedError($"Cannot find item for ID {itemId}");
 		}
-
-		useItem((nint)itemContextMenuAgent, id, 999, 0, 0);
-	}
-	private void attemptReuse(IFramework framework) {
-		if (this.retryItem > 0) {
-			this.use(this.retryItem);
-			this.retryItem = 0;
+		else if (dryRun) {
+			ChatUtil.ShowPrefixedMessage(
+				"Attempting to use ",
+				new UIForegroundPayload(14),
+				name!,
+				new UIForegroundPayload(0),
+				" (item ID ",
+				new UIForegroundPayload(14),
+				itemId,
+				new UIForegroundPayload(0),
+				")"
+			);
+		}
+		else {
+			this.use(itemId, type);
 		}
 	}
-	protected override void Dispose(bool disposing) {
-		if (this.Disposed)
+
+	private void use(uint id, ActionType type) {
+		InventoryManager* inv = InventoryManager.Instance();
+		ActionManager* actions = ActionManager.Instance();
+		if (inv is null) {
+			Plugin.Log.Error("can't retrieve InventoryManager instance");
 			return;
-		this.Disposed = true;
+		}
+		if (actions is null) {
+			Plugin.Log.Error("can't retrieve ActionManager instance");
+			return;
+		}
 
-		if (disposing)
-			Plugin.Framework.Update -= this.attemptReuse;
+		if (id == 0 || inv->GetInventoryItemCount(id) == 0)
+			return;
 
-		base.Dispose(disposing);
+		actions->UseAction(type, id, 0xE000_0000, 0xFFFF);
 	}
+
 }
