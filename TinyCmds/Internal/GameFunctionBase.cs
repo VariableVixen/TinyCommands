@@ -4,8 +4,6 @@ using System.Runtime.InteropServices;
 
 using Dalamud.Hooking;
 
-using VariableVixen.TinyCmds;
-
 namespace VariableVixen.TinyCmds.Internal;
 
 internal abstract class GameFunctionBase<T> where T : Delegate {

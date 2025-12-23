@@ -15,12 +15,11 @@ using PC = FFXIVClientStructs.FFXIV.Client.Game.Character.Character;
 namespace VariableVixen.TinyCmds.Commands.Conditional;
 
 [Command("/ifmount")]
-[Arguments("'-n'?", "mount IDs to match against", "command to run...?")]
+[Arguments("flags?", "mount IDs to match against", "command to run...?")]
 [Summary("Run a chat command (or directly send a message) only when using a specific mount")]
 [HelpText(
 	"This command's test is whether or not your current mount ID is one of the given set."
 	+ " Use the numeric ID, and if you want to check against more than one, separate them with commas but NOT spaces."
-	+ " If you pass the -n flag, the match will be inverted so the command runs only when you AREN'T using one of the given mounts."
 	+ " If you are not mounted, your effective mount ID is 0, which can be used for the check.",
 	"",
 	"Using -g will print your current mount ID, to make it easier to find the one you want."
@@ -28,9 +27,9 @@ namespace VariableVixen.TinyCmds.Commands.Conditional;
 
 public class ConditionalMount: BaseConditionalCommand {
 	private const string CurrentMountLabel = "Your current mount ID is ";
-	protected override unsafe bool TryExecute(string? command, string rawArguments, FlagMap flags, bool verbose, bool dryRun, ref bool showHelp) {
+	protected override unsafe bool TryExecute(string? command, string rawArguments, FlagMap flags, bool inverted, bool verbose, bool dryRun, ref bool showHelp) {
 		string arg = rawArguments ?? string.Empty;
-		PC* player = (PC*)Plugin.Client.LocalPlayer!.Address; // LocalPlayer is guaranteed to be non-null by BaseConditionalCommand
+		PC* player = (PC*)Plugin.Objects.LocalPlayer!.Address; // LocalPlayer is guaranteed to be non-null by BaseConditionalCommand
 		Assert(player is not null, "failed to acquire CS LocalPlayer");
 		MountContainer? mount = Plugin.Conditions[ConditionFlag.Mounted] || Plugin.Conditions[ConditionFlag.RidingPillion] ? player->Mount : null;
 		ushort mountId = mount?.MountId ?? 0;
@@ -50,7 +49,7 @@ public class ConditionalMount: BaseConditionalCommand {
 		string cmd = arg.Contains(' ')
 			? arg[(wantedMountIds.Length + 1)..]
 			: string.Empty;
-		bool invert = flags["n"];
+		bool invert = inverted || flags["n"]; // -n is deprecated but still functional
 		bool match = wantedMountIds.Split(',', StringSplitOptions.RemoveEmptyEntries).Contains(mountId.ToString());
 
 		if (match ^ invert) {

@@ -48,7 +48,7 @@ public unsafe class UseItem: PluginCommand {
 		if (items.TryGetValue(itemId, out string? name))
 			type = ActionType.Item;
 		else if (keyItems.TryGetValue(itemId, out name))
-			type = ActionType.KeyItem;
+			type = ActionType.EventItem;
 
 		if (type is ActionType.None) {
 			ChatUtil.ShowPrefixedError($"Cannot find item for ID {itemId}");

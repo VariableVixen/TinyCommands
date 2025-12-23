@@ -8,9 +8,9 @@ using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
 
+using VisibilityFlags = FFXIVClientStructs.FFXIV.Client.Game.Object.VisibilityFlags;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 
-using Lumina.Excel;
 using Lumina.Excel.Sheets;
 
 using VariableVixen.TinyCmds.Attributes;
@@ -48,12 +48,10 @@ public class LocateGameObjectCommand: PluginCommand {
 			return;
 		}
 
-		int invisibleFlags = 0
-			| 1 << 1 // hide model
-			| 1 << 11; // hide nameplate
+		VisibilityFlags invisibleFlags = VisibilityFlags.Model | VisibilityFlags.Nameplate;
 
 		string needle = rawArguments.Trim();
-		Vector3 here = Plugin.Client.LocalPlayer!.Position;
+		Vector3 here = Plugin.Objects.LocalPlayer!.Position;
 		IEnumerable<(string name, Vector3 position, float distance)> found = Plugin.Objects
 			.Where(o =>
 				(flags['A'] || o.ObjectKind is ObjectKind.BattleNpc or ObjectKind.Player or ObjectKind.EventNpc or ObjectKind.EventObj or ObjectKind.Companion)

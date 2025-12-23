@@ -87,8 +87,8 @@ public class LocateBestFATECommand: PluginCommand {
 			Plugin.Toast.ShowError("No FATEs are available.");
 			return;
 		}
-		Vector3 here = Plugin.Client.LocalPlayer!.Position;
-		byte maxLevel = (new byte[] { Plugin.Client.LocalPlayer!.Level }).Concat(Plugin.Party.Select(p => p.GameObject is not null && p.GameObject.IsValid() ? p.Level : byte.MaxValue)).Min();
+		Vector3 here = Plugin.Objects.LocalPlayer!.Position;
+		byte maxLevel = (new byte[] { Plugin.Objects.LocalPlayer!.Level }).Concat(Plugin.Party.Select(p => p.GameObject is not null && p.GameObject.IsValid() ? p.Level : byte.MaxValue)).Min();
 		uint minTime = 0;
 		byte maxProgress = 100;
 		string[] args = rawArguments.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);

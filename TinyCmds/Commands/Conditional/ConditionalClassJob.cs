@@ -10,17 +10,16 @@ using VariableVixen.TinyCmds.Utils;
 namespace VariableVixen.TinyCmds.Commands.Conditional;
 
 [Command("/ifjob", "/ifclass", "/whenjob", "/whenclass", "/job", "/class")]
-[Arguments("'-n'?", "jobs to match against", "command to run...?")]
+[Arguments("flags?", "jobs to match against", "command to run...?")]
 [Summary("Run a chat command (or directly send a message) only when playing certain classes/jobs")]
 [HelpText(
 	"This command's test is whether or not your current class/job is one of the given set."
 	+ " Use the three-letter abbreviation, and if you want to check against more than one, separate them with commas but NOT spaces."
-	+ " If you pass the -n flag, the match will be inverted so the command runs only when you AREN'T one of those jobs."
 )]
 public class ConditionalClassJob: BaseConditionalCommand {
-	protected override bool TryExecute(string? command, string rawArguments, FlagMap flags, bool verbose, bool dryRun, ref bool showHelp) {
+	protected override bool TryExecute(string? command, string rawArguments, FlagMap flags, bool inverted, bool verbose, bool dryRun, ref bool showHelp) {
 		string arg = rawArguments ?? string.Empty;
-		ClassJob? job = Plugin.Client.LocalPlayer!.ClassJob.ValueNullable;
+		ClassJob? job = Plugin.Objects.LocalPlayer!.ClassJob.ValueNullable;
 		Assert(job.HasValue, "cannot load current class/job game data");
 		string currentJobName = job!.Value.Abbreviation.ToString().ToUpper();
 		string wantedJobNames = arg.Split()[0].ToUpper();
@@ -33,7 +32,7 @@ public class ConditionalClassJob: BaseConditionalCommand {
 		string cmd = arg.Contains(' ')
 			? arg[(wantedJobNames.Length + 1)..]
 			: string.Empty;
-		bool invert = flags["n"];
+		bool invert = inverted || flags["n"]; // -n is deprecated but still functional
 		bool match = wantedJobNames.Split(',').Contains(currentJobName);
 
 		if (match ^ invert) {

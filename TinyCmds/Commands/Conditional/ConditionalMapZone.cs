@@ -9,17 +9,16 @@ using VariableVixen.TinyCmds.Utils;
 namespace VariableVixen.TinyCmds.Commands.Conditional;
 
 [Command("/ifzone", "/ifmap", "/ifmapzone")]
-[Arguments("'-n'?", "zone IDs to match against", "command to run...?")]
+[Arguments("flags?", "zone IDs to match against", "command to run...?")]
 [Summary("Run a chat command (or directly send a message) only when in a certain map zone")]
 [HelpText(
 	"This command's test is whether or not your current zone ID is one of the given set."
-	+ " Use the numeric ID, and if you want to check against more than one, separate them with commas but NOT spaces."
-	+ " If you pass the -n flag, the match will be inverted so the command runs only when you AREN'T in one of the given zones.",
+	+ " Use the numeric ID, and if you want to check against more than one, separate them with commas but NOT spaces.",
 	"",
 	"Using -g will print your current zone ID, to make it easier to find the one you want."
 )]
 public class ConditionalMapZone: BaseConditionalCommand {
-	protected override bool TryExecute(string? command, string rawArguments, FlagMap flags, bool verbose, bool dryRun, ref bool showHelp) {
+	protected override bool TryExecute(string? command, string rawArguments, FlagMap flags, bool inverted, bool verbose, bool dryRun, ref bool showHelp) {
 		string arg = rawArguments ?? string.Empty;
 		ushort territory = Plugin.Client.TerritoryType;
 		Assert(territory is not 0, "cannot identify current area");
@@ -39,7 +38,7 @@ public class ConditionalMapZone: BaseConditionalCommand {
 		string cmd = arg.Contains(' ')
 			? arg[(wantedMapZones.Length + 1)..]
 			: string.Empty;
-		bool invert = flags["n"];
+		bool invert = inverted || flags["n"]; // -n is deprecated but still functional
 		bool match = wantedMapZones.Split(',', StringSplitOptions.RemoveEmptyEntries).Contains(territory.ToString());
 
 		if (match ^ invert) {

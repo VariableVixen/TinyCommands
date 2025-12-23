@@ -46,6 +46,8 @@ public class FlagMap: Dictionary<string, bool> {
 	public bool Get(string key) => this[key];
 	public bool Get(char key) => this.Get(key.ToString());
 
+	public IEnumerable<string> Enabled => this.Keys.Where(k => this[k]);
+
 	public override string ToString()
 		=> string.Join(", ", this.Keys.Where(k => this[k]));
 }

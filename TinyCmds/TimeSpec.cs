@@ -42,8 +42,8 @@ public static class TimeSpec {
 		}
 	}
 	public static uint RawHours(string spec) => TryParse(spec, out uint hours, out _, out _) ? hours : 0;
-	public static uint RawMinutes(string spec) => TryParse(spec, out uint hours, out uint minutes, out _) ? hours * 60 + minutes : 0;
-	public static uint RawSeconds(string spec) => TryParse(spec, out uint hours, out uint minutes, out uint seconds) ? (hours * 60 + minutes) * 60 + seconds : 0;
+	public static uint RawMinutes(string spec) => TryParse(spec, out uint hours, out uint minutes, out _) ? (hours * 60) + minutes : 0;
+	public static uint RawSeconds(string spec) => TryParse(spec, out uint hours, out uint minutes, out uint seconds) ? (((hours * 60) + minutes) * 60) + seconds : 0;
 
 	public static void Normalise(ref uint hours, ref uint minutes, ref uint seconds) {
 		if (seconds >= 60) {

@@ -1,4 +1,3 @@
-using VariableVixen.TinyCmds;
 using VariableVixen.TinyCmds.Chat;
 using VariableVixen.TinyCmds.Utils;
 
@@ -11,15 +10,15 @@ public abstract class BaseConditionalCommand: PluginCommand {
 		+ "\n"
 		+ $"{original}\n"
 		+ "\n"
-		+ "As with all conditional commands, you can use the -$ flag to halt the current macro if one is running."
+		+ "As with all conditional commands, you can use the -$ flag to halt the current macro if one is running, and -& to invert the condition."
 		+ " As with all commands that send an input line to the server, the -? flag will display the input line before it's run, and the -! flag will display the input line without running it.";
 
-	protected abstract bool TryExecute(string? command, string rawArguments, FlagMap flags, bool verbose, bool dryRun, ref bool showHelp);
+	protected abstract bool TryExecute(string? command, string rawArguments, FlagMap flags, bool inverted, bool verbose, bool dryRun, ref bool showHelp);
 
 	protected override void Execute(string? command, string rawArguments, FlagMap flags, bool verbose, bool dryRun, ref bool showHelp) {
-		Assert(Plugin.Client.LocalPlayer is not null, "can't find LocalPlayer");
+		Assert(Plugin.Objects.LocalPlayer is not null, "can't find LocalPlayer");
 
-		bool didConditionsPass = this.TryExecute(command, rawArguments, flags, verbose, dryRun, ref showHelp);
+		bool didConditionsPass = this.TryExecute(command, rawArguments, flags, flags['&'], verbose, dryRun, ref showHelp);
 
 		if (didConditionsPass && !showHelp && flags['$'])
 			ChatUtil.SendChatlineToServer("/macrocancel", dryRun || verbose, dryRun);

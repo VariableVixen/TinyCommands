@@ -1,7 +1,4 @@
 using System;
-using System.Runtime.InteropServices;
-
-using Dalamud.Game;
 
 using FFXIVClientStructs.FFXIV.Client.System.String;
 

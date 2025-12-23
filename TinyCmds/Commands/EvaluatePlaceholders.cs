@@ -96,15 +96,15 @@ public class EvaluatePlaceholders: PluginCommand {
 				=> (mods.Contains("utc") ? DateTime.UtcNow : DateTime.Now).Hour < 12 ? "am" : "pm",
 			// Custom placeholders - personal stats
 			"classname" or "jobname"
-				=> Plugin.Client.LocalPlayer is null
+				=> Plugin.Objects.LocalPlayer is null
 					? ""
 					: mods.Contains("short")
-						? Plugin.Client.LocalPlayer.ClassJob.Value.Abbreviation.ToString()
-						: Plugin.Client.LocalPlayer.ClassJob.Value.Name.ToString(),
+						? Plugin.Objects.LocalPlayer.ClassJob.Value.Abbreviation.ToString()
+						: Plugin.Objects.LocalPlayer.ClassJob.Value.Name.ToString(),
 			"level" or "lvl"
-				=> Plugin.Client.LocalPlayer is null
+				=> Plugin.Objects.LocalPlayer is null
 					? ""
-					: Plugin.Client.LocalPlayer.Level.ToString(mods.Contains("short") ? "D" : "D2"),
+					: Plugin.Objects.LocalPlayer.Level.ToString(mods.Contains("short") ? "D" : "D2"),
 			// Vanilla placeholders - targets
 			"t" or "target"
 			or "tt" or "t2t"
@@ -126,7 +126,7 @@ public class EvaluatePlaceholders: PluginCommand {
 				=> readObjName(Framework.Instance()->UIModule->GetPronounModule()->ResolvePlaceholder($"<{p}>", 1, 0)),
 			// Vanilla placeholders - other
 			"class" or "job"
-				=> Plugin.Client.LocalPlayer is null ? "" : Plugin.Client.LocalPlayer.ClassJob.Value.Name.ToString() + "(" + Plugin.Client.LocalPlayer.Level + ")",
+				=> Plugin.Objects.LocalPlayer is null ? "" : Plugin.Objects.LocalPlayer.ClassJob.Value.Name.ToString() + "(" + Plugin.Objects.LocalPlayer.Level + ")",
 			// Not a placeholder
 			_ => p,
 		};
