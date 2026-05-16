@@ -54,7 +54,7 @@ public class ConditionalGameFlags: BaseConditionalCommand {
 		bool invert = flag.All(char.IsUpper);
 		return invert ^ (flag.ToLower() switch {
 			"t" => Plugin.Targets.Target is not null,
-			"p" => Plugin.Targets.Target?.ObjectKind is ObjectKind.Player,
+			"p" => Plugin.Targets.Target?.ObjectKind is ObjectKind.Pc,
 			"n" => Plugin.Targets.Target?.ObjectKind is ObjectKind.BattleNpc or ObjectKind.EventNpc or ObjectKind.Retainer,
 			"m" => Plugin.Targets.Target?.ObjectKind is ObjectKind.Companion,
 			"f" => Plugin.Targets.FocusTarget is not null,

@@ -20,7 +20,7 @@ namespace VariableVixen.TinyCmds.Commands.Conditional;
 public class ConditionalMapZone: BaseConditionalCommand {
 	protected override bool TryExecute(string? command, string rawArguments, FlagMap flags, bool inverted, bool verbose, bool dryRun, ref bool showHelp) {
 		string arg = rawArguments ?? string.Empty;
-		ushort territory = Plugin.Client.TerritoryType;
+		uint territory = Plugin.Client.TerritoryType;
 		Assert(territory is not 0, "cannot identify current area");
 
 		if (flags['g']) {
