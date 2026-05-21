@@ -122,13 +122,13 @@ public class LocateBestFATECommand: PluginCommand {
 			? fates.OrderByDescending(f => f.Level).First().Level
 			: fates.OrderBy(f => f.Level).First().Level;
 		Fate[] filtered = fates.Where(f => f.Level == fateLevel).ToArray();
-		IEnumerable<Fate> found = filtered.Where(f => f.State is FateState.Preparation || (f.TimeRemaining >= minTime && f.Progress <= maxProgress));
+		IEnumerable<Fate> found = filtered.Where(f => f.State is FateState.Preparing || (f.TimeRemaining >= minTime && f.Progress <= maxProgress));
 		bool adjusted = false;
 		while (!found.Any()) { // nothing was found that matches, so we need to gradually relax the limits until SOMETHING comes up
 			adjusted = true;
 			minTime = minTime >= 30 ? minTime - 30 : 0;
 			maxProgress = (byte)Math.Min(maxProgress + 5, 100);
-			found = filtered.Where(f => f.State is FateState.Preparation || (f.TimeRemaining >= minTime && f.Progress <= maxProgress));
+			found = filtered.Where(f => f.State is FateState.Preparing || (f.TimeRemaining >= minTime && f.Progress <= maxProgress));
 			if (minTime == 0 && maxProgress == 100) // just in case, to avoid infinite thrash loops
 				break;
 		}
@@ -178,7 +178,7 @@ public class LocateBestFATECommand: PluginCommand {
 			}
 			payloads.Add(ChatColour.RESET);
 			payloads.Add(", ");
-			if (fate.State is FateState.Preparation) {
+			if (fate.State is FateState.Preparing) {
 				payloads.AddRange([
 					ChatColour.CONDITION_PASSED,
 					"not yet triggered",

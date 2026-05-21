@@ -54,7 +54,7 @@ public class LocateGameObjectCommand: PluginCommand {
 		Vector3 here = Plugin.Objects.LocalPlayer!.Position;
 		IEnumerable<(string name, Vector3 position, float distance)> found = Plugin.Objects
 			.Where(o =>
-				(flags['A'] || o.ObjectKind is ObjectKind.BattleNpc or ObjectKind.Player or ObjectKind.EventNpc or ObjectKind.EventObj or ObjectKind.Companion)
+				(flags['A'] || o.ObjectKind is ObjectKind.BattleNpc or ObjectKind.Pc or ObjectKind.EventNpc or ObjectKind.EventObj or ObjectKind.Companion)
 				&& (flags['a'] || ((CSGO*)o.Address)->GetIsTargetable() || (((CSGO*)o.Address)->RenderFlags & invisibleFlags) != invisibleFlags || ((CSGO*)o.Address)->DrawObject is not null)
 				&& o.Name.TextValue.Contains(needle, StringComparison.OrdinalIgnoreCase)
 			)
